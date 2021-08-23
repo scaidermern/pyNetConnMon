@@ -49,6 +49,15 @@ As soon as this wait time has passed, a mail report will get sent, including all
 Continuous network failures increase this backoff, with an upper bound of `BACKOFF_MAX`.
 `BACKOFF_MAX` is also used as time after which to reset the backoff to zero if interruptions stay absent.
 
+## Autostart
+
+To start the script automatically after boot you can use a crontab entry or init script.
+Here is an example for starting the script automatically at boot inside a tmux session, via cron (`crontab -e` as a regular user, i.e. non-root):
+```
+@reboot              cd ~/pyNetConnMon && SHELL=/bin/bash tmux new -d -s pynetconnmon "python3 pyNetConnMon.py"
+```
+You can attach to it via `tmux a -t pynetconnmon` and detach from it via the default key binding `ctrl-b d`.
+
 # License
 [GPL v3](http://www.gnu.org/licenses/gpl.html)
 (c) Alexander Heinlein
