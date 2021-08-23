@@ -1,0 +1,3 @@
+[submodule "pySendMail"]
+	path = pySendMail
+	url = https://github.com/scaidermern/pySendMail.git
