@@ -68,7 +68,15 @@ class pyNetConnMon:
                     connectivity,
                     'downtime' if connectivity else 'uptime',
                     duration)
-                msgList.append(msg)
+
+                if connectivity and duration < self.minInterruption:
+                    # minimum interruption time not reached, ignore it
+                    msg += ' (ignored)'
+                    # remove last message about up->down change
+                    msgList.pop()
+                else:
+                    msgList.append(msg)
+
                 print(msg)
 
             if msgList and connectivity:
