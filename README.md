@@ -32,6 +32,7 @@ All of the following time-based arguments are specified in seconds.
 - `-bmin BACKOFF_MIN, --backoff-min BACKOFF_MIN`: minimum time to pass between mail reports (for backoff, default: 60.0)
 - `-bmax BACKOFF_MAX, --backoff-max BACKOFF_MAX`: maximum time to pass between mail reports (for backoff, default: 3600.0)
 - `-bstep BACKOFF_STEP, --backoff-step BACKOFF_STEP`: backoff wait time increment for subsequent connection losses (default: 300.0)
+- `-n, --notify-start`: send a mail at startup
 
 ## Example
 
