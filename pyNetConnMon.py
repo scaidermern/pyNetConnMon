@@ -133,7 +133,7 @@ if __name__ == '__main__':
     parser.add_argument('-bmin', '--backoff-min', type=float, help='minimum time to pass between mail reports (for backoff, default: %.1f)' % pyNetConnMon.default_backoff_min)
     parser.add_argument('-bmax', '--backoff-max', type=float, help='maximum time to pass between mail reports (for backoff, default: %.1f)' % pyNetConnMon.default_backoff_max)
     parser.add_argument('-bstep', '--backoff-step', type=float, help='backoff wait time increment for subsequent connection losses (default: %.1f)' % pyNetConnMon.default_backoff_step)
-    parser.add_argument('-s', '--start', action='store_true', help='send a mail at startup')
+    parser.add_argument('-n', '--notify-start', action='store_true', help='send a mail at startup')
     args = parser.parse_args()
 
     mon = pyNetConnMon()
@@ -143,7 +143,7 @@ if __name__ == '__main__':
         if value is not None:
             setattr(mon, arg_name, value)
 
-    if args.start:
+    if args.notify_start:
         try:
             mail = sendMail.pySendMail()
             mail.subject = mon.mail_subject
