@@ -21,6 +21,7 @@ class pyNetConnMon:
     default_backoff_step = 5.0 * 60.0
 
     time_stamp_format = '%Y-%m-%d %H:%M:%S'
+    mail_subject = 'pyNetConnMon'
 
     def __init__(self):
         self.address = self.default_address
@@ -54,7 +55,7 @@ class pyNetConnMon:
     def sendMailReport(self):
         try:
             mail = sendMail.pySendMail()
-            mail.subject = 'pyNetConnMon'
+            mail.subject = self.mail_subject
             mail.content = '\n'.join(self.msg_list)
             mail.send()
 
@@ -144,7 +145,7 @@ if __name__ == '__main__':
     if args.start:
         try:
             mail = sendMail.pySendMail()
-            mail.subject = 'pyNetConnMon'
+            mail.subject = mon.mail_subject
             mail.content = '%s Starting network connectivity monitoring' % datetime.datetime.now().strftime(mon.time_stamp_format)
             mail.send()
         except Exception as e:
