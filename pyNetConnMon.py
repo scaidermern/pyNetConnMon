@@ -20,6 +20,8 @@ class pyNetConnMon:
     defaultBackoffMax  = 60.0 * 60.0
     defaultBackoffStep =  5.0 * 60.0
 
+    timeStampFormat = '%Y-%m-%d %H:%M:%S'
+
     def __init__(self):
         self.host = self.defaultHost
         self.port = self.defaultPort
@@ -85,7 +87,7 @@ class pyNetConnMon:
                     duration = self.now - downSince
 
                 msg = '%s connectivity changed to %s (%s: %s)' % (
-                    self.now.strftime('%Y-%m-%d %H:%M:%S'),
+                    self.now.strftime(self.timeStampFormat),
                     connectivity,
                     'downtime' if connectivity else 'uptime',
                     duration)
@@ -129,6 +131,7 @@ if __name__ == '__main__':
     parser.add_argument('-bmin', '--backoff-min', type=float, help='minimum time to pass between mail reports (for backoff, default: %.1f)' % pyNetConnMon.defaultBackoffMin)
     parser.add_argument('-bmax', '--backoff-max', type=float, help='maximum time to pass between mail reports (for backoff, default: %.1f)' % pyNetConnMon.defaultBackoffMax)
     parser.add_argument('-bstep', '--backoff-step', type=float, help='backoff wait time increment for subsequent connection losses (default: %.1f)' % pyNetConnMon.defaultBackoffStep)
+    parser.add_argument('-n', '--notify-start', action='store_true', help='send a mail at startup')
     args = parser.parse_args()
 
     mon = pyNetConnMon()
@@ -149,5 +152,14 @@ if __name__ == '__main__':
         mon.backoffMax = args.backoff_max
     if args.backoff_step:
         mon.backoffStep = args.backoff_step
+
+    if args.start:
+        try:
+            mail = sendMail.pySendMail()
+            mail.subject = 'pyNetConnMon'
+            mail.content = '%s Starting network connectivity monitoring' % datetime.datetime.now().strftime(pyNetConnMon.timeStampFormat)
+            mail.send()
+        except Exception as e:
+            print('failed to send startup mail: %s' % e)
 
     mon.monitor()
