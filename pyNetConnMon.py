@@ -22,6 +22,7 @@ class pyNetConnMon:
 
     time_stamp_format = '%Y-%m-%d %H:%M:%S'
     mail_subject = 'pyNetConnMon'
+    configurable_attrs = ['address', 'port', 'interval', 'timeout', 'min_interruption', 'backoff_min', 'backoff_max', 'backoff_step']
 
     def __init__(self):
         self.address = self.default_address
@@ -137,7 +138,7 @@ if __name__ == '__main__':
 
     mon = pyNetConnMon()
 
-    for arg_name in ['address', 'port', 'interval', 'timeout', 'min_interruption', 'backoff_min', 'backoff_max', 'backoff_step']:
+    for arg_name in pyNetConnMon.configurable_attrs:
         value = getattr(args, arg_name)
         if value is not None:
             setattr(mon, arg_name, value)
