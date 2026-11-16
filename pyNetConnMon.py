@@ -32,6 +32,12 @@ class pyNetConnMon:
         self.backoffMax = self.defaultBackoffMax
         self.backoffStep = self.defaultBackoffStep
 
+        # mail state
+        self.msgList = list()
+        self.mailLastSend = datetime.datetime.fromtimestamp(0)
+        self.mailBackoff = None
+        self.now = None
+
     def checkConnectivity(self):
         try:
             socket.setdefaulttimeout(self.checkTimeout)
@@ -43,28 +49,43 @@ class pyNetConnMon:
             print(e)
             return False
 
+    def sendMailReport(self):
+        try:
+            mail = sendMail.pySendMail()
+            mail.subject = 'pyNetConnMon'
+            mail.content = '\n'.join(self.msgList)
+            mail.send()
+
+            self.msgList = list()
+
+            self.mailLastSend = self.now
+            if not self.mailBackoff:
+                self.mailBackoff = self.backoffMin
+            else:
+                self.mailBackoff += self.backoffStep
+            self.mailBackoff = min(self.mailBackoff, self.backoffMax)
+        except Exception as e:
+            print('failed to send mail: %s, will try again' % e)
+
     def monitor(self):
         lastConnectivity = True
         upSince = downSince = datetime.datetime.now()
-        mailLastSend = datetime.datetime.fromtimestamp(0)
-        mailBackoff = None
-        msgList = list()
         while True:
-            now = datetime.datetime.now()
+            self.now = datetime.datetime.now()
             connectivity = self.checkConnectivity()
             connectivityChange = connectivity != lastConnectivity
             if connectivityChange:
                 if not connectivity:
                     # we are down
-                    downSince = now
-                    duration = now - upSince
+                    downSince = self.now
+                    duration = self.now - upSince
                 else:
                     # we are up
-                    upSince = now
-                    duration = now - downSince
+                    upSince = self.now
+                    duration = self.now - downSince
 
                 msg = '%s connectivity changed to %s (%s: %s)' % (
-                    now.strftime('%Y-%m-%d %H:%M:%S'),
+                    self.now.strftime('%Y-%m-%d %H:%M:%S'),
                     connectivity,
                     'downtime' if connectivity else 'uptime',
                     duration)
@@ -73,36 +94,21 @@ class pyNetConnMon:
                     # minimum interruption time not reached, ignore it
                     msg += ' (ignored)'
                     # remove last message about up->down change
-                    msgList.pop()
+                    self.msgList.pop()
                 else:
-                    msgList.append(msg)
+                    self.msgList.append(msg)
 
                 print(msg)
 
-            if msgList and connectivity:
+            if self.msgList and connectivity:
                 # send mail report if enough time passed between last mail
-                if not mailBackoff or now > (mailLastSend + datetime.timedelta(seconds=mailBackoff)):
-                    try:
-                        mail = sendMail.pySendMail()
-                        mail.subject = 'pyNetConnMon'
-                        mail.content = '\n'.join(msgList)
-                        mail.send()
+                if not self.mailBackoff or self.now > (self.mailLastSend + datetime.timedelta(seconds=self.mailBackoff)):
+                    self.sendMailReport()
 
-                        msgList = list()
-
-                        mailLastSend = now
-                        if not mailBackoff:
-                            mailBackoff = self.backoffMin
-                        else:
-                            mailBackoff += self.backoffStep
-                        mailBackoff = min(mailBackoff, self.backoffMax)
-                    except Exception as e:
-                        print('failed to send mail: %s, will try again' % e)
-
-            if mailBackoff and \
-               now > (mailLastSend + datetime.timedelta(seconds=self.backoffMax)):
+            if self.mailBackoff and \
+               self.now > (self.mailLastSend + datetime.timedelta(seconds=self.backoffMax)):
                 # reset current backoff if we didn't send any mail recently
-                mailBackoff = None
+                self.mailBackoff = None
 
             if not connectivityChange:
                 # only sleep when nothing has changed
